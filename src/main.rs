@@ -11,14 +11,14 @@ mod aoc1;
 // mod aoc17;
 // mod aoc18;
 // mod aoc19;
-// mod aoc2;
+mod aoc2;
 // mod aoc20;
 // mod aoc21;
 // mod aoc22;
 // mod aoc23;
 // mod aoc24;
 // mod aoc25;
-// mod aoc3;
+mod aoc3;
 // mod aoc4;
 // mod aoc5;
 // mod aoc6;
@@ -38,8 +38,8 @@ fn main() -> anyhow::Result<()> {
 
     match day {
         1 => aoc1::run(),
-        // 2 => aoc2::run(),
-        // 3 => aoc3::run(),
+        2 => aoc2::run(),
+        3 => aoc3::run(),
         // 4 => aoc4::run(),
         // 5 => aoc5::run(),
         // 6 => aoc6::run(),

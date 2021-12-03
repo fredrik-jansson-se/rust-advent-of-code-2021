@@ -29,16 +29,17 @@ fn run_1(input: &[usize]) -> anyhow::Result<usize> {
 }
 
 fn run_2(input: &[usize]) -> anyhow::Result<usize> {
-    let (_, cnt) = input
-        .windows(3)
-        .map(|v| v.iter().fold(0, |a, b| a + b))
-        .fold((usize::MAX, 0), |(prev, cnt), cur| {
-            if &prev < &cur {
-                (cur, cnt + 1)
-            } else {
-                (cur, cnt)
-            }
-        });
+    let (_, cnt) =
+        input
+            .windows(3)
+            .map(|v| v.iter().sum())
+            .fold((usize::MAX, 0), |(prev, cnt), cur| {
+                if prev < cur {
+                    (cur, cnt + 1)
+                } else {
+                    (cur, cnt)
+                }
+            });
     Ok(cnt)
 }
 

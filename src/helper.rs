@@ -5,13 +5,13 @@ use nom::combinator::{map_res, opt};
 use nom::sequence::pair;
 use nom::IResult;
 
-fn signed_to_val<I>(s: (Option<&str>, &str)) -> Result<I, std::num::ParseIntError>
+fn signed_to_val<I>((sign, digits): (Option<&str>, &str)) -> Result<I, std::num::ParseIntError>
 where
     I: std::str::FromStr<Err = std::num::ParseIntError> + std::ops::Neg<Output = I>,
 {
-    match s.0 {
-        Some("-") => s.1.parse::<I>().map(|v| -v),
-        _ => s.1.parse::<I>(),
+    match sign {
+        Some("-") => digits.parse::<I>().map(|v| -v),
+        _ => digits.parse::<I>(),
     }
 }
 
