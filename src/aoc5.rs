@@ -8,11 +8,11 @@ pub fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_1(input: &str) -> anyhow::Result<usize> {
+fn run_1(_input: &str) -> anyhow::Result<usize> {
     Ok(0)
 }
 
-fn run_2(input: &str) -> anyhow::Result<usize> {
+fn run_2(_input: &str) -> anyhow::Result<usize> {
     Ok(0)
 }
 

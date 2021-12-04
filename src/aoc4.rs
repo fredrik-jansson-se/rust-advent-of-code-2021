@@ -64,7 +64,8 @@ fn run_2(input: &str) -> anyhow::Result<usize> {
     Ok(0)
 }
 
-fn parse(i: &str) -> anyhow::Result<(Vec<usize>, Vec<Vec<Vec<usize>>>)> {
+type Board = Vec<Vec<usize>>;
+fn parse(i: &str) -> anyhow::Result<(Vec<usize>, Vec<Board>)> {
     // get input numbers
     let (i, input) =
         nom::multi::separated_list1(nom::bytes::complete::tag(","), crate::helper::uval)(i)

@@ -15,12 +15,12 @@ fn run_1(input: &str) -> anyhow::Result<usize> {
     for line in input.lines() {
         one_cnt.truncate(line.len());
         len += 1;
-        let mut idx = 0;
-        for v in line.chars().rev() {
+        // let mut idx = 0;
+        for (idx, v) in line.chars().rev().enumerate() {
             if v == '1' {
                 one_cnt[idx] += 1;
             }
-            idx += 1;
+            // idx += 1;
         }
     }
 
