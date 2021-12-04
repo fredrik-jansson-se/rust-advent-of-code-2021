@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn aoc4_parse() {
-        let (input, boards) = super::parse(INPUT).unwrap();
+        let (_input, boards) = super::parse(INPUT).unwrap();
         assert_eq!(boards.len(), 3);
     }
 
