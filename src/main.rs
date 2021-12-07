@@ -23,7 +23,7 @@ mod aoc4;
 mod aoc5;
 mod aoc6;
 mod aoc7;
-// mod aoc8;
+mod aoc8;
 // mod aoc9;
 mod helper;
 
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
         5 => aoc5::run(),
         6 => aoc6::run(),
         7 => aoc7::run(),
-        // 8 => aoc8::run(),
+        8 => aoc8::run(),
         // 9 => aoc9::run(),
         // 10 => aoc10::run(),
         // 11 => aoc11::run(),
