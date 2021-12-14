@@ -1,103 +1,156 @@
 use std::fs;
 
-pub fn run() {
+pub fn run() -> anyhow::Result<()> {
     let input = fs::read_to_string("day9.txt").unwrap();
-    println!("day9-1: {}", run_1(&input, 100));
-    println!("day9-2: {}", run_2(&input, 100));
+    println!("day9-1: {}", run_1(&input)?);
+    println!("day9-2: {}", run_2(&input)?);
+    Ok(())
 }
 
-fn is_valid(v: usize, preamble: &[usize]) -> bool {
-    for (i, v1) in preamble.iter().enumerate() {
-        if v > *v1 {
-            // dbg! {(v, v1, v-v1)};
-            if preamble[(i + 1)..].contains(&(v - v1)) {
-                return true;
+fn run_1(input: &str) -> anyhow::Result<isize> {
+    let map = parse(input)?;
+
+    let get_val = |(row, col): &(isize, isize)| {
+        if *row >= 0
+            && *row < (map.len() as isize)
+            && *col >= 0
+            && *col < (map[*row as usize].len() as isize)
+        {
+            Some(map[*row as usize][*col as usize])
+        } else {
+            None
+        }
+    };
+
+    let mut risk_level = 0;
+    for (r, row) in map.iter().enumerate() {
+        for (c, col) in row.iter().enumerate() {
+            let min_surround = [
+                (r as isize - 1, c as isize),
+                (r as isize + 1, c as isize),
+                (r as isize, c as isize - 1),
+                (r as isize, c as isize + 1),
+            ]
+            .iter()
+            .filter_map(get_val)
+            .min()
+            .unwrap_or(isize::MAX);
+            if *col < min_surround {
+                risk_level += col + 1;
             }
         }
     }
-    return false;
+
+    Ok(risk_level)
 }
 
-fn run_1(input: &str, preamble_len: usize) -> usize {
-    let (_, xmas) = parse_xmas(input).unwrap();
-    let mut start = 0;
-    loop {
-        let end = start + preamble_len;
-        let preamble = &xmas[start..end];
-        // dbg! {(xmas[end], preamble)};
-        if !is_valid(xmas[end], preamble) {
-            return xmas[end];
+fn run_2(input: &str) -> anyhow::Result<usize> {
+    let map = parse(input)?;
+
+    let get_val = |(row, col): &(isize, isize)| {
+        if *row >= 0
+            && *row < (map.len() as isize)
+            && *col >= 0
+            && *col < (map[*row as usize].len() as isize)
+        {
+            Some(map[*row as usize][*col as usize])
+        } else {
+            None
+        }
+    };
+
+    let mut basin_points = std::collections::HashSet::new();
+
+    for (r, row) in map.iter().enumerate() {
+        for (c, col) in row.iter().enumerate() {
+            let min_surround = [
+                (r as isize - 1, c as isize),
+                (r as isize + 1, c as isize),
+                (r as isize, c as isize - 1),
+                (r as isize, c as isize + 1),
+            ]
+            .iter()
+            .filter_map(get_val)
+            .min()
+            .unwrap_or(isize::MAX);
+            if *col < min_surround {
+                basin_points.insert((r, c));
+            }
+        }
+    }
+
+    let is_nbr = |(row, col): &(isize, isize)| {
+        if *row >= 0
+            && *row < (map.len() as isize)
+            && *col >= 0
+            && *col < (map[*row as usize].len() as isize)
+        {
+            map[*row as usize][*col as usize] < 9
+        } else {
+            false
+        }
+    };
+
+    let mut basin_sizes: Vec<usize> = Vec::new();
+    while let Some(pt) = basin_points.iter().next().cloned() {
+        let mut searched = std::collections::HashSet::new();
+        let mut to_search = vec![pt];
+        while let Some(pt) = to_search.pop() {
+            searched.insert(pt);
+            basin_points.remove(&pt);
+            let r = pt.0;
+            let c = pt.1;
+            for n in [
+                (r as isize - 1, c as isize),
+                (r as isize + 1, c as isize),
+                (r as isize, c as isize - 1),
+                (r as isize, c as isize + 1),
+            ]
+            .iter()
+            .filter(|c| is_nbr(*c))
+            {
+                let n = (n.0 as usize, n.1 as usize);
+                if !searched.contains(&n) {
+                    to_search.push((n.0 as usize, n.1 as usize));
+                }
+            }
         }
 
-        start += 1;
+        basin_sizes.push(searched.len());
     }
+
+    basin_sizes.sort_unstable();
+    // Multiply the top three sizes
+    Ok(basin_sizes.iter().rev().take(3).product())
 }
 
-fn run_2(input: &str, preamble_len: usize) -> usize {
-    let (_, xmas) = parse_xmas(input).unwrap();
-    let invalid = run_1(input, preamble_len);
-
-    for (i, v1) in xmas.iter().enumerate() {
-        let mut min = v1;
-        let mut max = v1;
-        let mut sum = *v1;
-        for v2 in xmas[(i + 1)..].iter() {
-            min = min.min(v2);
-            max = max.max(v2);
-            sum += *v2;
-            if sum > invalid {
-                break;
-            }
-            if sum == invalid {
-                return min + max;
-            }
+fn parse(i: &str) -> anyhow::Result<Vec<Vec<isize>>> {
+    let mut res = Vec::new();
+    for line in i.lines() {
+        let mut row: Vec<isize> = Vec::new();
+        for c in line.chars() {
+            row.push(c.to_digit(10).unwrap() as isize);
         }
+        res.push(row);
     }
-    unreachable!()
-}
-
-fn parse_xmas(i: &str) -> nom::IResult<&str, Vec<usize>> {
-    nom::multi::separated_list1(
-        nom::character::complete::newline,
-        crate::helper::uval::<usize>,
-    )(i)
+    Ok(res)
 }
 
 #[cfg(test)]
 mod tests {
-    const INPUT: &str = "35
-20
-15
-25
-47
-40
-62
-55
-65
-95
-102
-117
-150
-182
-127
-219
-299
-277
-309
-576";
-    #[test]
-    fn aoc9_is_valid() {
-        assert!(super::is_valid(6, &[1, 2, 3, 4, 5]));
-        assert!(!super::is_valid(10, &[1, 2, 3, 4, 5]));
-    }
+    const INPUT: &str = "2199943210
+3987894921
+9856789892
+8767896789
+9899965678";
 
     #[test]
     fn aoc9_run_1() {
-        assert_eq!(super::run_1(INPUT, 5), 127);
+        assert_eq!(super::run_1(INPUT).unwrap(), 15);
     }
 
     #[test]
     fn aoc9_run_2() {
-        assert_eq!(super::run_2(INPUT, 5), 62);
+        assert_eq!(super::run_2(INPUT).unwrap(), 1134);
     }
 }

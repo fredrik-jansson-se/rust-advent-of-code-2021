@@ -1,8 +1,8 @@
 use std::env;
 
 mod aoc1;
-// mod aoc10;
-// mod aoc11;
+mod aoc10;
+mod aoc11;
 // mod aoc12;
 // mod aoc13;
 // mod aoc14;
@@ -24,7 +24,7 @@ mod aoc5;
 mod aoc6;
 mod aoc7;
 mod aoc8;
-// mod aoc9;
+mod aoc9;
 mod helper;
 
 fn main() -> anyhow::Result<()> {
@@ -42,9 +42,9 @@ fn main() -> anyhow::Result<()> {
         6 => aoc6::run(),
         7 => aoc7::run(),
         8 => aoc8::run(),
-        // 9 => aoc9::run(),
-        // 10 => aoc10::run(),
-        // 11 => aoc11::run(),
+        9 => aoc9::run(),
+        10 => aoc10::run(),
+        11 => aoc11::run(),
         // 12 => aoc12::run(),
         // 13 => aoc13::run(),
         // 14 => aoc14::run(),

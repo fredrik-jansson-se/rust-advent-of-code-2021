@@ -1,40 +1,19 @@
-// use std::collections::HashMap;
+use std::fs;
 
-const SUB_DIV: usize = 20201227;
-
-pub fn run() {
-    println!("25:1 {}", run_1(17773298, 15530095));
+pub fn run() -> anyhow::Result<()> {
+    let input = fs::read_to_string("day9.txt").unwrap();
+    println!("day9-1: {}", run_1(&input)?);
+    println!("day9-2: {}", run_2(&input)?);
+    Ok(())
 }
 
-fn transform_subject_number(subject_number: usize, loop_size: usize) -> usize {
-    let mut value = 1;
-    for _ in 0..loop_size {
-        value = (value * subject_number) % SUB_DIV;
-    }
-    value
+fn run_1(_input: &str) -> anyhow::Result<usize> {
+    todo!()
 }
 
-fn run_1(card_pk: usize, door_pk: usize) -> usize {
-    let subject_key = 7;
-    // let mut lookup = HashMap::new();
-    for loop_size in 1.. {
-        let transformed = transform_subject_number(subject_key, loop_size);
-        // lookup.insert(loop_size, transformed);
-        if transformed == card_pk {
-            println!("Found card");
-            return transform_subject_number(door_pk, loop_size);
-        } else if transformed == door_pk {
-            println!("Found door");
-            return transform_subject_number(card_pk, loop_size);
-        }
-    }
-    unreachable!()
+fn run_2(_input: &str) -> anyhow::Result<usize> {
+    todo!()
 }
 
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn aoc25_run_1() {
-        assert_eq!(super::run_1(5764801, 17807724), 14897079);
-    }
-}
+mod tests {}
