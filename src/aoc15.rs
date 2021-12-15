@@ -1,89 +1,127 @@
-use std::collections::HashMap;
+use pathfinding::directed::astar::*;
 use std::fs;
 
-pub fn run() {
+pub fn run() -> anyhow::Result<()> {
     let input = fs::read_to_string("day15.txt").unwrap();
-    println!("15:1 {}", run_1(&input));
-    println!("15:2 {}", run_2(&input));
+    println!("day15-1: {}", run_1(&input)?);
+    println!("day15-2: {}", run_2(&input)?);
+    Ok(())
 }
 
-#[derive(Debug, Clone)]
-struct Spoken {
-    turn: usize,
-    cnt: usize,
-}
+fn solve(map: Vec<Vec<isize>>) -> anyhow::Result<usize> {
+    let height = map.len() as isize;
+    let width = map[0].len() as isize;
 
-fn solve(input: &str, break_at_turn: usize) -> usize {
-    let (_, vals) = parse(input).unwrap();
-    let mut last_spoken_lu = HashMap::new();
-
-    for (t, v) in vals.iter().enumerate() {
-        let turn = t + 1;
-        last_spoken_lu.insert(*v, vec![turn]);
-    }
-
-    let mut turn = vals.len();
-    let mut last_spoken = vals[vals.len() - 1];
-    loop {
-        if turn == break_at_turn {
-            return last_spoken;
-        }
-
-        turn += 1;
-        let s = last_spoken_lu.get_mut(&last_spoken).unwrap();
-        if s.len() == 1 {
-            // last time this was spoken, it was the first time
-            last_spoken = 0;
+    let get_nbr = |(row, col): (isize, isize)| {
+        if (0..height).contains(&row) && (0..width).contains(&col) {
+            Some(((row, col), map[row as usize][col as usize]))
         } else {
-            // This word has been spoken before, diff between the last two turns
-            last_spoken = s[s.len() - 1] - s[s.len() - 2];
+            None
         }
-        //
-        let e = last_spoken_lu.entry(last_spoken).or_insert(vec![]);
-        e.push(turn);
-        if e.len() > 2 {
-            e.remove(0);
+    };
+
+    let successors = |(row, col): &(isize, isize)| {
+        [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            .iter()
+            .filter_map(|(dr, dc)| get_nbr((row + dr, col + dc)))
+            .collect::<Vec<_>>()
+    };
+
+    let goal = (height - 1, width - 1);
+    let (_res, cost) = astar(
+        &(0, 0),
+        successors,
+        |(row, col)| ((goal.0 - row) + (col - goal.1)),
+        |g| g == &goal,
+    )
+    .unwrap();
+    Ok(cost as usize)
+}
+
+fn run_1(input: &str) -> anyhow::Result<usize> {
+    let map: Vec<Vec<_>> = input
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c| c.to_digit(10).unwrap() as isize)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    solve(map)
+}
+
+fn run_2(input: &str) -> anyhow::Result<usize> {
+    let map: Vec<Vec<_>> = input
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c| c.to_digit(10).unwrap() as isize)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    solve(expand(map))
+}
+
+fn expand(mut map: Vec<Vec<isize>>) -> Vec<Vec<isize>> {
+    let old_size = map.len();
+    let new_size = map.len() * 5;
+    map.reserve(new_size);
+    // First expand right
+    for (_, row) in map.iter_mut().enumerate() {
+        row.resize(new_size, 0);
+        for c in old_size..new_size {
+            row[c] = row[c - old_size] % 9 + 1;
         }
     }
-}
 
-fn run_1(input: &str) -> usize {
-    solve(input, 2020)
-}
+    for r in old_size..new_size {
+        let mut row = vec![0; new_size];
+        for (c, value) in row.iter_mut().enumerate() {
+            *value = map[r - old_size][c] % 9 + 1;
+        }
 
-fn run_2(input: &str) -> usize {
-    solve(input, 30_000_000)
-}
+        map.push(row);
+    }
 
-fn parse(i: &str) -> nom::IResult<&str, Vec<usize>> {
-    let (i, vals) =
-        nom::multi::separated_list1(nom::character::complete::char(','), crate::helper::uval)(i)?;
-    Ok((i, vals))
+    map
 }
 
 #[cfg(test)]
 mod tests {
+    const INPUT: &str = "1163751742
+1381373672
+2136511328
+3694931569
+7463417111
+1319128137
+1359912421
+3125421639
+1293138521
+2311944581";
 
     #[test]
     fn aoc15_run_1() {
-        assert_eq!(super::run_1("0,3,6"), 436);
-        assert_eq!(super::run_1("1,3,2"), 1);
-        assert_eq!(super::run_1("2,1,3"), 10);
-        assert_eq!(super::run_1("1,2,3"), 27);
-        assert_eq!(super::run_1("2,3,1"), 78);
-        assert_eq!(super::run_1("3,2,1"), 438);
-        assert_eq!(super::run_1("3,1,2"), 1836);
+        assert_eq!(super::run_1(INPUT).unwrap(), 40);
     }
 
     #[test]
     fn aoc15_run_2() {
-        // Correct, but takes a long time to run
-        // assert_eq!(super::run_2("0,3,6"), 175594);
-        // assert_eq!(super::run_2("1,3,2"), 2578);
-        // assert_eq!(super::run_2("2,1,3"), 3544142);
-        // assert_eq!(super::run_2("1,2,3"), 261214);
-        // assert_eq!(super::run_2("2,3,1"), 6895259);
-        // assert_eq!(super::run_2("3,2,1"), 18);
-        // assert_eq!(super::run_2("3,1,2"), 362);
+        assert_eq!(super::run_2(INPUT).unwrap(), 315);
+    }
+
+    #[test]
+    fn aoc15_expand() {
+        let expanded = super::expand(vec![vec![8]]);
+        assert_eq!(
+            expanded,
+            vec![
+                vec![8, 9, 1, 2, 3],
+                vec![9, 1, 2, 3, 4],
+                vec![1, 2, 3, 4, 5],
+                vec![2, 3, 4, 5, 6],
+                vec![3, 4, 5, 6, 7]
+            ]
+        );
     }
 }

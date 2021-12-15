@@ -9,4 +9,5 @@ anyhow = "1"
 ndarray = "0.15.4"
 nom = {version = "7", features = []}
 nom-regex = "0.2.0"
+pathfinding = "3.0.5"
 regex = "1"
