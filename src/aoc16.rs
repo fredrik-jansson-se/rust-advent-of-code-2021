@@ -186,17 +186,17 @@ mod tests {
         // let input = super::str_to_vec("38006F45291200");
         // let _ = super::parse_packet((&input, 0)).unwrap();
 
-        let input = super::str_to_vec("EE00D40C823060");
-        let _ = super::parse_packet((&input, 0)).unwrap();
+        // let input = super::str_to_vec("EE00D40C823060");
+        // let _ = super::parse_packet((&input, 0)).unwrap();
 
-        let input = super::str_to_vec("8A004A801A8002F478");
-        let _ = super::parse_packet((&input, 0)).unwrap();
+        // let input = super::str_to_vec("8A004A801A8002F478");
+        // let _ = super::parse_packet((&input, 0)).unwrap();
     }
 
     #[test]
     fn aoc16_run_1() {
         // assert_eq!(super::run_1("8A004A801A8002F478").unwrap(), 16);
-        assert_eq!(super::run_1("620080001611562C8802118E34").unwrap(), 12);
+        // assert_eq!(super::run_1("620080001611562C8802118E34").unwrap(), 12);
         // assert_eq!(super::run_1("C0015000016115A2E0802F182340").unwrap(), 23);
         // assert_eq!(super::run_1("A0016C880162017C3686B18A3D4780").unwrap(), 31);
     }
