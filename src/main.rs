@@ -17,7 +17,7 @@ mod aoc21;
 // mod aoc22;
 // mod aoc23;
 // mod aoc24;
-// mod aoc25;
+mod aoc25;
 mod aoc3;
 mod aoc4;
 mod aoc5;
@@ -58,7 +58,7 @@ fn main() -> anyhow::Result<()> {
         // 22 => aoc22::run(),
         // 23 => aoc23::run(),
         // 24 => aoc24::run(),
-        // 25 => aoc25::run(),
+        25 => aoc25::run(),
         _ => Err(anyhow::anyhow!("Not yet implemented")),
     }
 }
