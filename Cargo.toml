@@ -6,6 +6,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
+derive-try-from-primitive = "1.0.0"
 ndarray = "0"
 nom = {version = "7", features = []}
 # nom-regex = "0.2.0"

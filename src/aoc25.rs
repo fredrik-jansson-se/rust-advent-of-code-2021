@@ -8,6 +8,7 @@ pub fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Dir {
     East,
     South,
@@ -21,17 +22,80 @@ fn next_step(width: usize, height: usize) -> impl Fn(Dir, (usize, usize)) -> (us
 }
 
 fn run_1(input: &str) -> anyhow::Result<usize> {
-    let (_, map) = parse(input).map_err(|e| e.to_owned())?;
-    todo!()
+    let (_, (width, height, mut map)) = parse(input).map_err(|e| e.to_owned())?;
+    let mut cnt = 0;
+
+    loop {
+        let mut cur = HashMap::new();
+        cnt += 1;
+
+        for ((row, col), _) in map.iter().filter(|((_, _), dir)| **dir == Dir::East) {
+            let next_col = (col + 1) % width;
+            if map.get(&(*row, next_col)).is_none() {
+                cur.insert((*row, next_col), Dir::East);
+            } else {
+                cur.insert((*row, *col), Dir::East);
+            }
+        }
+
+        for ((row, col), _) in map.iter().filter(|((_, _), dir)| **dir == Dir::South) {
+            let next_row = (row + 1) % height;
+            let occupied = map.get(&(next_row, *col));
+            let occupied = match occupied {
+                Some(Dir::South) => true,
+                _ => cur.get(&(next_row, *col)).is_some(),
+            };
+            if !occupied {
+                cur.insert((next_row, *col), Dir::South);
+            } else {
+                cur.insert((*row, *col), Dir::South);
+            }
+        }
+
+        if map == cur {
+            break;
+        }
+
+        map = cur;
+    }
+
+    Ok(cnt)
 }
 
 fn run_2(_input: &str) -> anyhow::Result<usize> {
     todo!()
 }
 
+// fn parse_pos(i: &str) -> nom::IResult<&str, Option<Dir>> {
+//     let east = nom::combinator::map(nom::bytes::complete::tag(">"), |_| Some(Dir::East));
+//     let south = nom::combinator::map(nom::bytes::complete::tag("v"), |_| Some(Dir::South));
+//     let empty = nom::combinator::map(nom::bytes::complete::tag("."), |_| None);
+//     nom::branch::alt((east, south, empty))(i)
+// }
+
 type Map = HashMap<(usize, usize), Dir>;
 fn parse(i: &str) -> nom::IResult<&str, (usize, usize, Map)> {
-    todo!()
+    let mut res = HashMap::new();
+    let mut width = 0;
+    let mut height = 0;
+    for (row, line) in i.lines().enumerate() {
+        height = height.max(row);
+        for (col, c) in line.chars().enumerate() {
+            width = width.max(col);
+            match c {
+                '>' => {
+                    res.insert((row, col), Dir::East);
+                }
+                'v' => {
+                    res.insert((row, col), Dir::South);
+                }
+                '.' => (),
+                _ => unreachable!(),
+            };
+        }
+    }
+
+    Ok(("", (width + 1, height + 1, res)))
 }
 
 #[cfg(test)]
