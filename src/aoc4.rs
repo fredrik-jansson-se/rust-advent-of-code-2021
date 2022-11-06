@@ -7,7 +7,7 @@ pub fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn check_board(input: usize, board: &mut Vec<Vec<usize>>) -> bool {
+fn check_board(input: usize, board: &mut [Vec<usize>]) -> bool {
     let mut found = None;
     for (r_num, row) in board.iter_mut().enumerate() {
         for (c_num, val) in row.iter_mut().enumerate() {

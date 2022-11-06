@@ -14,7 +14,7 @@ pub fn run() -> anyhow::Result<()> {
 fn run_1(input: &str) -> anyhow::Result<usize> {
     let io = parse(input)?;
 
-    let outputs: Vec<&Signals> = io.iter().map(|(_, o)| o).flatten().collect();
+    let outputs: Vec<&Signals> = io.iter().flat_map(|(_, o)| o).collect();
 
     Ok(outputs
         .iter()

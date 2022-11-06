@@ -107,7 +107,7 @@ fn run_2(input: &str) -> anyhow::Result<usize> {
                 (r as isize, c as isize + 1),
             ]
             .iter()
-            .filter(|c| is_nbr(*c))
+            .filter(|c| is_nbr(c))
             {
                 let n = (n.0 as usize, n.1 as usize);
                 if !searched.contains(&n) {

@@ -14,12 +14,12 @@ enum Dir {
     South,
 }
 
-fn next_step(width: usize, height: usize) -> impl Fn(Dir, (usize, usize)) -> (usize, usize) {
-    move |dir, (row, col)| match dir {
-        East => (row, (col + 1) % width),
-        South => ((row + 1) % height, col),
-    }
-}
+// fn next_step(width: usize, height: usize) -> impl Fn(Dir, (usize, usize)) -> (usize, usize) {
+//     move |dir, (row, col)| match dir {
+//         Dir::East => (row, (col + 1) % width),
+//         Dir::South => ((row + 1) % height, col),
+//     }
+// }
 
 fn run_1(input: &str) -> anyhow::Result<usize> {
     let (_, (width, height, mut map)) = parse(input).map_err(|e| e.to_owned())?;

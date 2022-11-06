@@ -43,11 +43,7 @@ fn oxygen_rating(input: Vec<Vec<u32>>, idx: usize) -> Vec<u32> {
     }
 
     let num_ones = input.iter().filter(|line| line[idx] == 1).count();
-    let filter = if num_ones >= (input.len() - num_ones) {
-        1
-    } else {
-        0
-    };
+    let filter = (num_ones >= (input.len() - num_ones)) as u32;
     let input = input
         .into_iter()
         .filter(|line| line[idx] == filter)
@@ -61,11 +57,7 @@ fn co2_rating(input: Vec<Vec<u32>>, idx: usize) -> Vec<u32> {
     }
 
     let num_ones = input.iter().filter(|line| line[idx] == 1).count();
-    let filter = if num_ones < (input.len() - num_ones) {
-        1
-    } else {
-        0
-    };
+    let filter = (num_ones < (input.len() - num_ones)) as u32;
     let input = input
         .into_iter()
         .filter(|line| line[idx] == filter)

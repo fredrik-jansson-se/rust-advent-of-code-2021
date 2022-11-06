@@ -1,6 +1,6 @@
 pub fn run() -> anyhow::Result<()> {
     println!("day17-1: {}", run_1(169..=206, -108..=-68)?);
-    // println!("day17-2: {}", run_2(&input)?);
+    println!("day17-2: {}", run_2(169..=206, -108..=-68)?);
     Ok(())
 }
 
@@ -13,7 +13,7 @@ fn run_1(x_range: Range, y_range: Range) -> anyhow::Result<isize> {
             maxes.push(simulate((x_vel, y_vel), &x_range, &y_range));
         }
     }
-    Ok(maxes.into_iter().filter_map(|v| v).max().unwrap())
+    Ok(maxes.into_iter().flatten().max().unwrap())
 }
 
 fn simulate(mut vel: (isize, isize), x_range: &Range, y_range: &Range) -> Option<isize> {
@@ -28,10 +28,10 @@ fn simulate(mut vel: (isize, isize), x_range: &Range, y_range: &Range) -> Option
         if x_range.contains(&pos.0) && y_range.contains(&pos.1) {
             did_hit = true;
         }
-        if vel.0 > 0 {
-            vel.0 -= 1;
-        } else if vel.0 < 0 {
-            vel.0 += 1;
+        match vel.0.cmp(&0) {
+            std::cmp::Ordering::Greater => vel.0 -= 1,
+            std::cmp::Ordering::Less => vel.0 += 1,
+            _ => (),
         }
         vel.1 -= 1;
     }

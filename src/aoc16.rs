@@ -40,29 +40,17 @@ fn eval(p: &Packet) -> usize {
             Type::LT => {
                 let p1 = eval(&packets[0]);
                 let p2 = eval(&packets[1]);
-                if p1 < p2 {
-                    1
-                } else {
-                    0
-                }
+                (p1 < p2) as usize
             }
             Type::GT => {
                 let p1 = eval(&packets[0]);
                 let p2 = eval(&packets[1]);
-                if p1 > p2 {
-                    1
-                } else {
-                    0
-                }
+                (p1 > p2) as usize
             }
             Type::Eq => {
                 let p1 = eval(&packets[0]);
                 let p2 = eval(&packets[1]);
-                if p1 == p2 {
-                    1
-                } else {
-                    0
-                }
+                (p1 == p2) as usize
             }
             p => {
                 dbg! {p};

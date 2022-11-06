@@ -1,135 +1,138 @@
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::newline,
-    combinator::map,
-    multi::{many1, separated_list1},
-    IResult,
-};
-use std::collections::HashSet;
 use std::fs;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-struct Pos {
-    row: isize,
-    col: isize,
+type Coord = (isize, isize);
+
+type Map = std::collections::HashMap<Coord, bool>;
+type Alg = Vec<bool>;
+
+pub fn run() -> anyhow::Result<()> {
+    let input = fs::read_to_string("day20.txt")?;
+    println!("20:1: {}", run_1(&input, false)?);
+    println!("20:2: {}", run_2(&input, false)?);
+    Ok(())
 }
 
-pub fn run() {
-    let input = fs::read_to_string("day20.txt").unwrap();
-    println!("20:1: {}", run_1(&input));
-    println!("20:2: {}", run_2(&input));
+type Input<'a> = &'a str;
+type PResult<'a, O> = nom::IResult<Input<'a>, O, nom::error::VerboseError<Input<'a>>>;
+
+fn parse_alg(i: Input) -> PResult<Alg> {
+    use nom::{branch::alt, bytes::complete::tag, combinator::map, multi::many_m_n};
+    let light = map(tag("#"), |_| true);
+    let dark = map(tag("."), |_| false);
+
+    let (i, alg) = many_m_n(512, 512, alt((light, dark)))(i)?;
+    let (i, _) = nom::combinator::opt(nom::character::complete::newline)(i)?;
+    Ok((i, alg))
 }
 
-fn run_1(input: &str) -> usize {
-    let (_, all_directions) = parse(input).unwrap();
+fn parse_map(i: Input) -> PResult<Map> {
+    let mut map = Map::new();
 
-    let mut tiles = HashSet::new();
-
-    for directions in all_directions.iter() {
-        let mut pos = Pos { row: 0, col: 0 };
-        for d in directions.iter() {
-            let even_row = pos.row % 2 == 0;
-            match d {
-                Direction::NW if even_row => {
-                    pos.row -= 1;
-                    pos.col -= 1;
-                }
-                Direction::NW => {
-                    pos.row -= 1;
-                }
-                Direction::NE if even_row => {
-                    pos.row -= 1;
-                }
-                Direction::NE => {
-                    pos.row -= 1;
-                    pos.col += 1;
-                }
-                Direction::SW if even_row => {
-                    pos.row += 1;
-                    pos.col -= 1;
-                }
-                Direction::SW => {
-                    pos.row += 1;
-                }
-                Direction::SE if even_row => {
-                    pos.row += 1;
-                }
-                Direction::SE => {
-                    pos.row += 1;
-                    pos.col += 1;
-                }
-                Direction::W => {
-                    pos.col -= 1;
-                }
-                Direction::E => {
-                    pos.col += 1;
-                }
-            }
-        }
-        if tiles.contains(&pos) {
-            tiles.remove(&pos);
-        } else {
-            tiles.insert(pos);
+    for (r_num, row) in i.lines().enumerate() {
+        for (c_num, c) in row.chars().enumerate() {
+            map.insert((r_num as isize, c_num as isize), c == '#');
         }
     }
-    tiles.len()
+
+    Ok(("", map))
 }
 
-fn run_2(_input: &str) -> i64 {
-    unreachable!();
+fn parse(i: Input) -> PResult<(Alg, Map)> {
+    let (i, alg) = parse_alg(i)?;
+    let (i, _) = nom::character::complete::newline(i)?;
+    let (i, map) = parse_map(i)?;
+    Ok((i, (alg, map)))
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum Direction {
-    NW,
-    NE,
-    W,
-    E,
-    SW,
-    SE,
+fn get_num((rc, cc): Coord, map: &Map, default: bool) -> usize {
+    let mut num = 0;
+
+    for r in (rc - 1)..=(rc + 1) {
+        for c in (cc - 1)..=(cc + 1) {
+            num <<= 1;
+            if *map.get(&(r, c)).unwrap_or(&default) {
+                num += 1;
+            }
+        }
+    }
+
+    num
 }
 
-fn parse(i: &str) -> IResult<&str, Vec<Vec<Direction>>> {
-    let nw = map(tag("nw"), |_| Direction::NW);
-    let ne = map(tag("ne"), |_| Direction::NE);
-    let sw = map(tag("sw"), |_| Direction::SW);
-    let se = map(tag("se"), |_| Direction::SE);
-    let w = map(tag("w"), |_| Direction::W);
-    let e = map(tag("e"), |_| Direction::E);
+fn enhance(input: &str, test: bool, rounds: usize) -> anyhow::Result<usize> {
+    let (_, (alg, mut map)) = parse(input).unwrap();
 
-    let line = many1(alt((nw, ne, sw, se, w, e)));
+    let mut new_map = Map::new();
 
-    separated_list1(newline, line)(i)
+    for round in 0..rounds {
+        let default = !test && (round % 2 == 1);
+
+        let (min_row, max_row, min_col, max_col) = map.keys().fold(
+            (isize::MAX, isize::MIN, isize::MAX, isize::MIN),
+            |(rmin, rmax, cmin, cmax), (r, c)| {
+                (rmin.min(*r), rmax.max(*r), cmin.min(*c), cmax.max(*c))
+            },
+        );
+
+        for r in (min_row - 1)..=(max_row + 1) {
+            for c in (min_col - 1)..=(max_col + 1) {
+                new_map.insert((r, c), alg[get_num((r, c), &map, default)]);
+            }
+        }
+        std::mem::swap(&mut map, &mut new_map);
+        new_map.clear();
+    }
+    let cnt = map.iter().filter(|(_, v)| **v).count();
+    Ok(cnt)
+}
+
+fn run_1(input: &str, test: bool) -> anyhow::Result<usize> {
+    enhance(input, test, 2)
+}
+
+fn run_2(input: &str, test: bool) -> anyhow::Result<usize> {
+    enhance(input, test, 50)
 }
 
 #[cfg(test)]
 mod tests {
+    const ALG:&str = "..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#";
+    const MAP: &str = "#..#.
+#....
+##..#
+..#..
+..###";
+
+    #[test]
+    fn aoc20_parse() {
+        let (_, alg_1) = super::parse_alg(ALG).unwrap();
+        let (_, map_1) = super::parse_map(MAP).unwrap();
+        // assert_eq!(map_1.len(), 10);
+
+        let (_, (alg_2, map_2)) = super::parse(&format!("{ALG}\n\n{MAP}")).unwrap();
+        assert_eq!(map_1, map_2);
+        assert_eq!(alg_1, alg_2);
+    }
+
+    #[test]
+    fn aoc20_get_num() {
+        let i = "...
+#..
+.#.";
+        let (_, map) = super::parse_map(i).unwrap();
+
+        assert_eq!(super::get_num((1, 1), &map, false), 34);
+    }
 
     #[test]
     fn aoc20_run_1() {
-        let ans = super::run_1(
-            "sesenwnenenewseeswwswswwnenewsewsw
-neeenesenwnwwswnenewnwwsewnenwseswesw
-seswneswswsenwwnwse
-nwnwneseeswswnenewneswwnewseswneseene
-swweswneswnenwsewnwneneseenw
-eesenwseswswnenwswnwnwsewwnwsene
-sewnenenenesenwsewnenwwwse
-wenwwweseeeweswwwnwwe
-wsweesenenewnwwnwsenewsenwwsesesenwne
-neeswseenwwswnwswswnw
-nenwswwsewswnenenewsenwsenwnesesenew
-enewnwewneswsewnwswenweswnenwsenwsw
-sweneswneswneneenwnewenewwneswswnese
-swwesenesewenwneswnwwneseswwne
-enesenwswwswneneswsenwnewswseenwsese
-wnwnesenesenenwwnenwsewesewsesesew
-nenewswnwewswnenesenwnesewesw
-eneswnwswnwsenenwnwnwwseeswneewsenese
-neswnwewnwnwseenwseesewsenwsweewe
-wseweeenwnesenwwwswnew",
-        );
-        assert_eq!(ans, 10);
+        let input = format!("{ALG}\n\n{MAP}");
+        assert_eq!(super::run_1(&input, true).unwrap(), 35);
+    }
+
+    #[test]
+    fn aoc20_run_2() {
+        let input = format!("{ALG}\n\n{MAP}");
+        assert_eq!(super::run_2(&input, true).unwrap(), 3351);
     }
 }

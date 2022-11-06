@@ -48,9 +48,9 @@ fn run_1(mut p1: usize, mut p2: usize) -> anyhow::Result<usize> {
     Ok(p1_score.min(p2_score) * die.rolls)
 }
 
-fn run_2(_input: &str) -> anyhow::Result<usize> {
-    todo!()
-}
+// fn run_2(_input: &str) -> anyhow::Result<usize> {
+//     todo!()
+// }
 
 #[cfg(test)]
 mod tests {
